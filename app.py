@@ -2,19 +2,16 @@ import streamlit as st
 import pickle
 import numpy as np
 
-
 st.set_page_config(
     page_title="Maitri – Silent Disease Risk Engine",
     layout="wide"
 )
-
 
 if "detected_diseases" not in st.session_state:
     st.session_state.detected_diseases = []
 
 if "selected_disease" not in st.session_state:
     st.session_state.selected_disease = None
-
 
 st.markdown("""
 <style>
@@ -67,7 +64,6 @@ st.markdown("""
 </style>
 """, unsafe_allow_html=True)
 
-
 st.markdown("""
 <div class="header">
     <h1>🩺 Welcome to Maitri</h1>
@@ -75,7 +71,6 @@ st.markdown("""
     <p>Detect risks early. Act before symptoms begin.</p>
 </div>
 """, unsafe_allow_html=True)
-
 
 @st.cache_resource
 def load_model(path):
@@ -86,12 +81,12 @@ def predict_risk(model, features):
     X = np.array(features).reshape(1, -1)
     return round(model.predict_proba(X)[0][1] * 100, 2)
 
-
 st.sidebar.header("📥 Enter Your Health Details")
 
 age = st.sidebar.number_input("Age", 15, 100)
 gender = st.sidebar.selectbox("Gender", [0, 1], format_func=lambda x: "Female" if x == 0 else "Male")
-bmi = st.sidebar.number_input("BMI", 10.0, 50.0)
+height_cm = st.sidebar.number_input("Height (cm)", 120, 220)
+weight_kg = st.sidebar.number_input("Weight (kg)", 30, 200)
 sleep = st.sidebar.slider("Sleep Hours", 0, 12)
 screen = st.sidebar.slider("Screen Time (hours)", 0, 15)
 stress = st.sidebar.slider("Stress Level (1–10)", 1, 10)
@@ -105,6 +100,8 @@ anemia = st.sidebar.selectbox("Do you have Anemia?", [0, 1], format_func=lambda 
 
 analyze = st.sidebar.button("🧠 Analyze My Health")
 
+height_m = height_cm / 100
+bmi = round(weight_kg / (height_m ** 2), 2)
 
 diseases = {
     "Diabetes": {"model": "diabetes_model.pkl", "features": [bmi, screen, fatigue, age]},
@@ -121,7 +118,6 @@ diseases = {
         "features": [hydration, water, stress, activity, fatigue]
     }
 }
-
 
 disease_info = {
     "Diabetes": {
@@ -161,7 +157,6 @@ disease_info = {
     }
 }
 
-
 if analyze:
     st.subheader("🧠 Health Risk Analysis")
     st.session_state.detected_diseases = []
@@ -193,10 +188,8 @@ if analyze:
         </div>
         """, unsafe_allow_html=True)
 
-
 if st.session_state.detected_diseases:
     st.subheader("📚 Learn About Detected Conditions")
-
     cols = st.columns(len(st.session_state.detected_diseases))
     for i, d in enumerate(st.session_state.detected_diseases):
         if cols[i].button(d):
@@ -214,10 +207,11 @@ if st.session_state.selected_disease:
         </div>
         """, unsafe_allow_html=True)
 
-
 st.markdown("""
 <div class="footer">
-⚠ Educational purpose only. Not a medical diagnosis.<br>
-Maitri helps you act early — not replace doctors.
+Educational purpose only. Not a medical diagnosis.<br>
+Maitri helps you act early, not replace doctors.<br>
+If you feel serious need, visit doctor immediately.
 </div>
 """, unsafe_allow_html=True)
+
